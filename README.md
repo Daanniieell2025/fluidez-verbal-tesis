@@ -16,6 +16,51 @@ fonológicas P y R y la tarea semántica Supermercado.
   de clúster, incluidos los ceros registrados por ausencia de clústeres.
 - Gráficos por tarea y figuras de síntesis.
 
+## Arquitectura del código
+
+El programa está dividido en módulos de Python. Se ejecuta únicamente
+[`codigo/main.py`](codigo/main.py), que coordina las etapas en el orden
+del diagrama y guarda las salidas juntas al terminar la corrida.
+
+```mermaid
+flowchart TD
+    A["Excel integrado · hoja Sheet1"] --> B["main.py · coordina la corrida"]
+    B --> C["base_final.py · valida el Excel"]
+    C --> K["main.py · selecciona la muestra elegible"]
+    K --> D["Base maestra · registros, muestra y descriptivos"]
+    K --> E["resultados_finales.py · ajusta los modelos"]
+    E --> F["Excel · asociaciones, coeficientes y diagnósticos"]
+    E --> G["PDF · tamaño promedio de clúster por tarea"]
+    D --> H["graficos_conteo.py · PDF de clústeres y switches"]
+    D --> I["sintesis_graficos.py · PDF de comparación entre tareas"]
+    D --> J["Carpeta resultados/"]
+    F --> J
+    G --> J
+    H --> J
+    I --> J
+```
+
+| Archivo | Función en el análisis |
+| --- | --- |
+| [`main.py`](codigo/main.py) | Recibe la ruta del Excel y la carpeta de salida. Selecciona la muestra elegible y coordina los modelos y la generación de archivos. |
+| [`base_final.py`](codigo/base_final.py) | Valida encabezados y folios, forma los grupos de edad y escolaridad y genera el Excel maestro. |
+| [`descriptivos.py`](codigo/descriptivos.py) | Calcula media, mediana, desviación estándar, cuartiles y extremos, además de contar valores válidos, faltantes y ceros. |
+| [`modelos.py`](codigo/modelos.py) | Ajusta las regresiones de Poisson y lineal y calcula coeficientes, errores estándar robustos y diagnósticos. |
+| [`modelos_conteo.py`](codigo/modelos_conteo.py) | Define las comparaciones, ajusta la binomial negativa y calcula frecuencias esperadas e indicadores como la dispersión de Pearson y el AIC. |
+| [`resultados_finales.py`](codigo/resultados_finales.py) | Ejecuta los modelos de conteo por tarea y reúne en un Excel las razones, los intervalos, los coeficientes, las ecuaciones y los diagnósticos. |
+| [`tamano_cluster.py`](codigo/tamano_cluster.py) | Analiza el tamaño promedio de clúster con regresión lineal y errores robustos HC3. Añade las tablas de ese análisis al Excel y genera sus PDF. |
+| [`graficos_conteo.py`](codigo/graficos_conteo.py) | Lee la muestra elegible del Excel maestro y genera PDF con distribuciones, estimaciones, curvas y diagnósticos de los conteos. |
+| [`graficos.py`](codigo/graficos.py) | Define las funciones compartidas para dibujar puntos, curvas, barras e intervalos. |
+| [`sintesis_graficos.py`](codigo/sintesis_graficos.py) | Reúne en un PDF por medida las asociaciones ajustadas de P, R y Supermercado. |
+| [`salida.py`](codigo/salida.py) | Aplica el formato común a las tablas de los Excel. |
+| [`requirements.txt`](codigo/requirements.txt) | Enumera las dependencias que se instalan antes de ejecutar el programa. |
+
+Las tablas principales comparan grupos de edad y escolaridad. Las curvas
+exploratorias usan la edad y la escolaridad expresadas en años. Por eso
+la dispersión de Pearson que aparece en una curva puede diferir de la
+del Excel. La comparación con binomial negativa se evalúa para el modelo
+que corresponde a cada salida.
+
 ## Instalación y ejecución
 
 Se requiere Python 3.10 o posterior. Desde la raíz del repositorio, crea un entorno:
@@ -73,12 +118,15 @@ La carpeta predeterminada es `resultados/`.
 | `P/`, `R/`, `Supermercado/` | PDF de conteos y tamaño promedio, en subcarpetas separadas |
 | `Sintesis/` | PDF comparativos de las tres tareas |
 
-El flujo parte en `codigo/main.py`. La lectura y validación están en
-`base_final.py`. Los modelos y su exportación se organizan en
-`modelos.py`, `modelos_conteo.py`, `resultados_finales.py` y
-`tamano_cluster.py`. Los PDF de conteos y de síntesis se generan desde
-`graficos_conteo.py` y `sintesis_graficos.py`.
+## Descargar el código como ZIP
 
-Las tablas principales usan grupos de edad y escolaridad. Las curvas
-exploratorias usan edad y escolaridad en años. La dispersión de Pearson
-y la comparación con binomial negativa se evalúan para cada modelo.
+1. Abre la [página principal del repositorio](https://github.com/Daanniieell2025/fluidez-verbal-tesis).
+2. Sobre la lista de archivos, pulsa **Code** y luego **Download ZIP**.
+   También puedes usar el [enlace de descarga directa](https://github.com/Daanniieell2025/fluidez-verbal-tesis/archive/refs/heads/main.zip).
+3. En Windows, haz clic derecho sobre el ZIP y selecciona **Extraer todo**.
+4. Abre la carpeta extraída que contiene `README.md` y `codigo/`.
+   Para abrir CMD en esa ubicación, escribe `cmd` en la barra de direcciones
+   del Explorador de archivos y presiona **Enter**.
+5. Crea la carpeta `datos/` y coloca allí tu copia autorizada del Excel.
+   Sigue los pasos de [instalación y ejecución](#instalación-y-ejecución)
+   y usa en `--entrada` el nombre real de tu archivo.
